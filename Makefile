@@ -291,6 +291,7 @@ clean-pgf:
 clean-gf:
 	rm grammars/*.gfo
 	rm grammars/extraction/*.gfo
+	rm src/Informath.hs
 
 clean-full:
 	make clean-typetheory
