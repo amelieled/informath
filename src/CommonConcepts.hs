@@ -8,7 +8,7 @@ import Utils
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.List (isSuffixOf)
-import Data.Char
+import Data.Char (isAlpha, isDigit)
 
 baseconstants = "BaseConstants"
 
@@ -176,11 +176,12 @@ lookupConstant f = case splitConstant f of
 
 -- split at # ; they can occur spuriously inside {|...|} but not elsewhere
 splitConstant :: String -> Either String [String]
-splitConstant f
-  | isSuffixOf "|}" f = Left f
-  | otherwise = case split '#' f of
-      ws@(_:_:_) -> Right ws
-      _ -> Left f
+splitConstant f =
+  if isSuffixOf "|}" f
+  then Left f
+  else case split '#' f of
+         ws@(_:_:_) -> Right ws
+         _ -> Left f
 
 -- leave only the first part, which is a GF function (can be a complex term)
 stripConstant :: String -> String
@@ -190,17 +191,19 @@ stripConstant f = case splitConstant f of
 
 -- deal with {|ident|}
 unescapeConstant :: String -> String
-unescapeConstant s = case s of
-  _ | take 2 s == "{|" -> drop 2 (take (length s - 2) s)
-  _ -> s
+unescapeConstant s =
+  if take 2 s == "{|"
+  then drop 2 (take (length s - 2) s)
+  else s
 
 escapeConstant :: String -> String
-escapeConstant s = case s of
-  _ | any (not . isIdentChar) s -> "{|" ++ s ++ "|}"
-  _ -> s
-
-isIdentChar :: Char -> Bool
-isIdentChar c = or [isAlpha c, isDigit c, elem c ".'_"]
+escapeConstant s =
+  if any (not . isIdentChar) s
+  then "{|" ++ s ++ "|}"
+  else s
+    where
+      isIdentChar :: Char -> Bool
+      isIdentChar c = or [isAlpha c, isDigit c, elem c ".'_"]
 
 -- Dedukti representation of digits in BaseConstants.dk
 digitFuns :: [String]
