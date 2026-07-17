@@ -10,6 +10,8 @@ import qualified Data.Set as S
 import Data.List (isSuffixOf)
 import Data.Char
 
+baseconstants = "BaseConstants"
+
 type DTree a = Dedukti.AbsDedukti.Tree a
 
 -- Informath category symbols with arities

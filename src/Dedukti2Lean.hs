@@ -17,8 +17,6 @@ import System.Environment (getArgs)
 
 import Dedukti.ErrM
 
-baseconstants = "BaseConstants"
-
 type Result = Err String
 
 failure :: Show a => a -> Result
