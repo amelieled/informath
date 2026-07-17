@@ -8,7 +8,6 @@ import Dedukti.PrintDedukti
 import DeduktiOperations
 import CommonConcepts
 import Informath
-import CommonConcepts (mainCats)
 
 import PGF
 import qualified Data.Map as M
