@@ -141,18 +141,17 @@ getEquations props b = case props of
 
 -- group flattened conjuncts to aggregated sublists; conj :: String is "and" or "or"
 groupProps :: String -> [GProp] -> [GProp]
-groupProps conj = groups where
+groupProps conj = groups
+ where
   groups props = case props of
-    p@(GAdjProp a x) : pp ->
-      case getAdjs pp x of
-        Just (adjs@(_:_), ps) -> (GAdjProp (adjConj conj (GListAdj (a:adjs))) x) : groups ps
-	_ -> case getAdjArgs pp a of
-          Just (exps@(_:_), ps) -> (GAdjProp a (expConj conj (GListExp (x:exps)))) : groups ps
-	  _ -> p : groups pp
-    p@(GFormulaProp (GEquationFormula (GBinaryEquation lt a b))) : pp ->
-      case getEquations pp b of
-        Just (eqs, ps) | conj == "and" -> (GFormulaProp (GEquationFormula (GChainEquation lt a eqs))) : groups ps
-	_ -> p : groups pp
+    p@(GAdjProp a x) : pp -> case getAdjs pp x of
+      Just (adjs@(_:_), ps) -> (GAdjProp (adjConj conj (GListAdj (a:adjs))) x) : groups ps
+      _ -> case getAdjArgs pp a of
+        Just (exps@(_:_), ps) -> (GAdjProp a (expConj conj (GListExp (x:exps)))) : groups ps
+        _ -> p : groups pp
+    p@(GFormulaProp (GEquationFormula (GBinaryEquation lt a b))) : pp -> case getEquations pp b of
+      Just (eqs, ps) | conj == "and" -> (GFormulaProp (GEquationFormula (GChainEquation lt a eqs))) : groups ps
+      _ -> p : groups pp
     p : pp -> p : groups pp
     _ -> []
   adjConj conj = case conj of
@@ -201,11 +200,11 @@ variations tree = case tree of
   GAxiomJmt label (GListHypo hypos) prop -> 
     let splits = [splitAt i hypos | i <- [0..length hypos]]
     in tree : [GAxiomJmt label (GListHypo hypos11) hypoprop |
-          (hypos1, hypos2) <- splits,
-	  hypos11 <- sequence (map variations hypos1),
-	  prop2 <- variations prop,
-	  hypoprop <- concatMap variations (hypoProp hypos2 prop2)
-	  ]
+      (hypos1, hypos2) <- splits,
+      hypos11 <- sequence (map variations hypos1),
+      prop2 <- variations prop,
+      hypoprop <- concatMap variations (hypoProp hypos2 prop2)
+     ]
   GVarsHypo (GListIdent xs) (GExpKind (GTermExp term)) ->
     [tree, GLetDeclarationHypo (GElemDeclaration (GListTerm [GIdentTerm x | x <- xs]) term)]
   GAllProp (GListArgKind [argkind]) prop ->
@@ -219,9 +218,9 @@ variations tree = case tree of
 
   GApp4MacroTerm (GStringMacro (GString "\\Summa")) m n (GIdentTerm i) f ->
     let m1s = case m of
-         GNumberTerm (GInt m) -> [GNumberTerm (GInt (m + 1))]
-	 _ -> [GOper2Term (LexOper2 "plus_Oper2") m (GNumberTerm (GInt 1))]
-		     --- not to be included with GInt m 
+           GNumberTerm (GInt m) -> [GNumberTerm (GInt (m + 1))]
+           _ -> [GOper2Term (LexOper2 "plus_Oper2") m (GNumberTerm (GInt 1))]
+              --- not to be included with GInt m 
     in tree : [Gsum3dots_Term (substTerm i m f) (substTerm i m1 f) (substTerm i n f) | m1 <- m1s]
 
   GFormulaProp formula ->
@@ -364,8 +363,8 @@ collectivize t = case t of
        (adjc2, expss) <- commonRel pp
        let lexp = [x, y]
        if adjc2 == adjc && any (flip elem expss) lexp
-         then return (adjc, lexp ++ expss)
-         else Nothing
+       then return (adjc, lexp ++ expss)
+       else Nothing
      _ -> Nothing
 
    collectArgs :: GFunC -> [GExp] -> [GExp]
@@ -391,4 +390,3 @@ negated t = case t of
   GCoreNotProp (GAdv2Prop adv x y) -> GNotAdv2Prop adv x y
   GCoreNotProp (GAdvCProp adv x y) -> GNotAdvCProp adv (GListExp [x, y])
   _ -> composOp negated t
-

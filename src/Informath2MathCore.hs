@@ -155,7 +155,7 @@ sem env t = case t of
   GAdjProp adj (GQuantExp (GNoIdentsKindQuant (GListIdent [x]) kind)) ->
     sem env (GAllProp (GListArgKind [GIdentsArgKind kind (GListIdent [x])])
               (GNotAdjProp adj (GTermExp (GIdentTerm x))))
-	      
+
   GAdjProp adj (GQuantExp (GEveryKindQuant kind)) ->
     let (x, env') = newVar env
     in sem env'
@@ -175,7 +175,7 @@ sem env t = case t of
     in sem env'
       (GAllProp (GListArgKind [GIdentsArgKind kind (GListIdent [x])])
         (GNotAdjProp adj (GTermExp (GIdentTerm x))))
-	
+
   GAdjProp adj exp -> case sem env adj of
     GAndAdj (GListAdj adjs)  ->
       let sx = sem env exp
@@ -196,7 +196,7 @@ sem env t = case t of
 
   GAdjCCollProp adj (GListExp [x, y]) -> GAdjCProp adj (sem env x) (sem env y)
   ---- TODO: AdjCColl properly implemented in Dedukti
-  
+
   GAdjECollProp adj (GListExp xs) ->
     GAndProp (GListProp [GAdjEProp adj x y | (x, y) <- subsequentPairs (map (sem env) xs)])
 
@@ -227,7 +227,7 @@ sem env t = case t of
     in GIdentsArgKind (sem nenv kind) (GListIdent [var])
 
   GDisplayFormulaProp formula -> sem env (GFormulaProp formula)
-  
+
   GFormulaProp (GEquationFormula equation@(GChainEquation _ _ _)) -> case chainedEquations equation of
     triples -> GAndProp (GListProp
       [sem env (GFormulaProp (GEquationFormula (GBinaryEquation eqsign x y))) | (eqsign, x, y) <- triples])
@@ -321,7 +321,6 @@ mkAndProp props = case props of
   [prop] -> prop
   _ -> GAndProp (GListProp props)
 
-
 getAndProps :: GProp -> Maybe [GProp]
 getAndProps prop = case prop of
   GAndProp (GListProp props) -> Just props
@@ -332,7 +331,6 @@ gExps :: [GExp] -> GExps
 gExps exps = case exps of
   [exp] -> GOneExps exp
   _ -> GManyExps (GListExp exps)
-
 
 --- used in iqTest when guessing summation terms 
 unknownTerm :: GTerm

@@ -1,10 +1,10 @@
 module Semantics where
 
-import Informath
-import PGF hiding (Tree)
+import Informath (Gf, gf, fg, GProp, GQuant, Tree(..), composOpM)
+import PGF (CId, Expr, mkApp, unApp, showExpr, readExpr) -- hiding (Tree)
 
-import qualified Data.Map as M
-import Data.List (permutations)
+import qualified Data.Map  as M (Map, lookup)
+import qualified Data.List as L (map, zip, permutations)
 
 type SemDefs = M.Map CId ([Expr] -> Expr)
 
@@ -15,7 +15,7 @@ appSemDefs defs = fg . applySemDefs defs . gf
 applySemDefs :: SemDefs -> Expr -> Expr
 applySemDefs defs exp = case unApp exp of
   Just (fun, args) ->
-    let args' = map (applySemDefs defs) args in case M.lookup fun defs of
+    let args' = L.map (applySemDefs defs) args in case M.lookup fun defs of
           Just fun' -> fun' args'
           _ -> mkApp fun args'
   _ -> exp
@@ -31,12 +31,12 @@ mkSemDef a b = case unApp a of
   getVar x = case unApp x of
     Just (y, []) -> return y
     _ -> Nothing
-  mkFun xs exp = \vars -> subst [(x, vars !! i) | (x, i) <- zip xs [0..]] exp
+  mkFun xs exp = \vars -> subst [(x, vars !! i) | (x, i) <- L.zip xs [0..]] exp
   subst vs exp = case unApp exp of
     Just (x, []) -> case lookup x vs of
       Just e -> e
       _ -> exp
-    Just (f, args) -> mkApp f (map (subst vs) args)
+    Just (f, args) -> mkApp f (L.map (subst vs) args)
     _ -> exp
 
 
@@ -54,13 +54,13 @@ type NLGDefs = M.Map CId [[Expr] -> Expr]
 
 
 appNLGDefs :: Gf a => NLGDefs -> a -> [a]
-appNLGDefs defs = map fg . applyNLGDefs defs . gf
+appNLGDefs defs = L.map fg . applyNLGDefs defs . gf
 
 
 applyNLGDefs :: NLGDefs -> Expr -> [Expr]
 applyNLGDefs defs exp = case unApp exp of
   Just (fun, args) ->
-    let argss' = sequence (map (applyNLGDefs defs) args) in case M.lookup fun defs of
+    let argss' = sequence (L.map (applyNLGDefs defs) args) in case M.lookup fun defs of
           Just funs' -> [fun' args' | fun' <- funs', args' <- argss']
           _ -> [mkApp fun args' | args' <- argss']
   _ -> [exp]
@@ -88,10 +88,10 @@ storageResults = results . analysedT where
   results :: (GProp, QEnv) -> [GProp] 
   results (prop, (_, quants)) =
     let (negs, prop') = getNeg prop
-    in [foldr (\q p -> q p) prop' prefs | prefs <- permutations (negs ++ prefixes quants)]
+    in [foldr (\q p -> q p) prop' prefs | prefs <- L.permutations (negs ++ prefixes quants)]
 
   prefixes :: [GQuant] -> [GProp -> GProp]
-  prefixes quants = map mkPrefix (zip quants [0..])
+  prefixes quants = L.map mkPrefix (L.zip quants [0..])
 
   --- this assumes that negations have been computed to CoreNotProp
   getNeg :: GProp -> ([GProp -> GProp], GProp)

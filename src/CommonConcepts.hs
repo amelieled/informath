@@ -4,7 +4,7 @@
 module CommonConcepts where
 
 import Dedukti.AbsDedukti
-import Utils
+import Utils (split)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.List (isSuffixOf)
