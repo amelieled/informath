@@ -500,7 +500,7 @@ oper tout : Gender => Str = table {Masc => "tout" ; Fem => "toutes"} ;
 The context-free expansion of the `forall` rule would here produce four rules, for each combination of the two genders with the two moods.
 The code also shows a **record type**, combining a table with a gender in the linearization type of `Set`.
 
-The keyword `oper`introduces yet another form of judgement: **auxiliary operations**. They are functions outside the `fun`/`lin` structure usable as auxiliaries in `lin` rules. The GF compiler eliminates them by inlining, and they are therefore unnecessary for the theoretical expression powerl. But they are an important part of grammar writing productivity, as they enable refactoring and reusability.
+The keyword `oper`introduces yet another form of judgement: **auxiliary operations**. They are functions outside the `fun`/`lin` structure usable as auxiliaries in `lin` rules. The GF compiler eliminates them by inlining, and they are therefore unnecessary for the theoretical expression power. But they are an important part of grammar writing productivity, as they enable refactoring and reusability.
 
 #### Discontinuous constituents
 
@@ -1233,7 +1233,7 @@ odd : odd_Adj
 plus : plus_FunC
 ```
 When generating MathCore, only the first GF function in each symbol table entry is used. 
-The remaining ones are synonyms that can be used in full Informathl.
+The remaining ones are synonyms that can be used in full Informath.
 Notice that one and the same MathCore function can be assigned to many Dedukti identifiers and therefore be ambiguous when translating natural language back to Dedukti. 
 This ambiguity should ideally resolved by type checking, which should accept only one of the translations.
 
