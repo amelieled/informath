@@ -39,6 +39,7 @@ import Data.List (partition, isSuffixOf, isPrefixOf, isInfixOf, intersperse, sor
 import Data.Char (isDigit, toUpper)
 import qualified Data.Map as M
 import qualified Data.Set as S
+import Text.JSON (JSValue)
 import System.Environment(getEnv)
 
 
@@ -345,7 +346,7 @@ printGenResult :: Env -> GenResult -> [String]
 printGenResult env result = case 0 of
   _ | toFormalism env /= "NONE" ->
     [printFormalismJmt env (toFormalism env) (originalDedukti result)]
-  _ | isFlag "-json" env || isFlag "-v" env -> [showJsonGenResult env result]
+  _ | isFlag "-json" env || any (flip isFlag env) ["-v", "-vs"] -> [showJsonGenResult env result]
   _ | isFlag "-parallel-data" env -> [showParallelData env result] 
   _ -> printNLGOutput env result
 
@@ -358,18 +359,19 @@ printNLGOutput env result = case (lookup (toLang env) (nlgResults result)) of
                ". Available values: " ++ unwords (map showCId (langs env))
 
 showJsonGenResult :: Env -> GenResult -> String
-showJsonGenResult env result = encodeJSON $ mkJSONObject [
+showJsonGenResult env result = encodeJSON $ mkJSONObject $ [
     mkJSONField "originalDedukti" (stringJSON (printDeduktiEnv env (originalDedukti result))),
     mkJSONListField "annotatedDedukti" (map (stringJSON . printDeduktiEnv env) (annotatedDedukti result)),
-    mkJSONListField "coreGF" (map (stringJSON . showExpr []) (coreGF result)),
+    mkJSONListField "coreGF" (map (stringJSON . showExpr []) (coreGF result))] ++
+    if isFlag "-vs" env then [] else [
     mkJSONField "nlgResults" (mkJSONObject [
-      mkJSONListField (showCId lang) (map (stringJSON . printRank) ranks) | (lang, ranks) <- nlgResults result]),
+      mkJSONListField (showCId lang) (map (printRank) ranks) | (lang, ranks) <- nlgResults result]),
     mkJSONListField "backToDedukti" [stringJSON (printDeduktiEnv env jmt) | jmt <- backToDedukti result]
     ]
 
 -- | The scores for each tree an string, in JSON.
-printRank :: ((GFTree, String), (Scores, Int)) -> String
-printRank ((tree, str), (scores, rank)) = encodeJSON $ mkJSONObject [
+printRank :: ((GFTree, String), (Scores, Int)) -> JSValue
+printRank ((tree, str), (scores, rank)) = mkJSONObject [
   mkJSONField "tree" (stringJSON (showExpr [] tree)),
   mkJSONField "lin" (stringJSON str),
   mkJSONField "scores" (stringJSON (show scores)),
@@ -442,7 +444,7 @@ printParseResult env result = case 0 of
     mkJSONField "indexedLine" (stringJSON (indexedLine result)),
     mkJSONField "parseMessage" (stringJSON (parseMessage result)),
     mkJSONListField "unknownWords" (map stringJSON (unknownWords result)),
-    mkJSONListField "formalResults" (map (stringJSON . printFinalParseResult env) (formalResults result))
+    mkJSONListField "formalResults" (map (finalParseResult env) (formalResults result))
     ]]
   _ -> printDeduktiOutput env result
 
@@ -452,8 +454,8 @@ printDeduktiOutput env result =
   nub [printDeduktiEnv env jmt | (_,_,_,jmts) <- formalResults result, jmt <- jmts]
 
 -- | Print both GF trees and resulting Dedukti, in JSON. 
-printFinalParseResult :: Env -> (GFTree, GFTree, GFTree, [Jmt]) -> String
-printFinalParseResult env (t, ut, ct, jmts) = encodeJSON $ mkJSONObject [
+finalParseResult :: Env -> (GFTree, GFTree, GFTree, [Jmt]) -> JSValue
+finalParseResult env (t, ut, ct, jmts) = mkJSONObject [
   mkJSONField "parseTree" (stringJSON (showExpr [] t)),
   mkJSONField "unindexedTree" (stringJSON (showExpr [] ut)),
   mkJSONField "coreTree" (stringJSON (showExpr [] ct)),

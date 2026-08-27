@@ -21,4 +21,10 @@ abstract MizarWords = Categories ** {
     one_sorted_Noun : Noun ;
     isomorphic_AdjC : AdjC ;
     isomorphism_DepC : DepC ;
+    function_like_Adj : Adj ;
+    finer_than_Adj2 : Adj2 ;
+    coarser_than_Adj2 : Adj2 ;
+    well_order_Verb2 : Verb2 ;
+    well_ordering_Adj : Adj ;
+    compatible_Adj2 : Adj2 ;
 }

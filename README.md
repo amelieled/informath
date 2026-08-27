@@ -8,9 +8,13 @@
 
 #### LATEST NEWS
 
+24 July 2026: New binary release, entitled [Informath-0.4](https://github.com/GrammaticalFramework/informath/releases/tag/informath-0.4).
+
+22 July 2026: also verbal constants can now be defined with `#` variables, which enables permutations, as well as drops without the `#DROP` directive. See [the alternative symbol table](test/profiletest.dkgf) for examples.
+
 10 July 2026: an experiment on porting the Informath grammar to new languages (Finnish and Czech) by help from Claude code. The process is documented in the [vibe directory](./doc/vibe/). NOTICE: these grammars are not yet an "official" part of Informath but need checking for known and still unknown bugs.
 
-22 June 2026: macros in symbol tables now directly possible in entries of form $...$, see test/symboltest.dkgf
+22 June 2026: macros in symbol tables now directly possible in entries of form `$...$`, e.g. `$#1 \mid #2$`, from which a macro is generated automatically; see test/profiletest.dkgf
 
 15 June 2026: a lengthy paper on Informath in arXiv: [Symbolic Informalization: Fluent, Productive, Multilingual](https://arxiv.org/abs/2606.16893). At the moment, this is the most up-to-date description on some features of Informath.
 
@@ -34,9 +38,11 @@
 
 This README: using Informath with ready-made binaries and grammars.
 
-[Informath Under the Hood](./doc/informath-under-the-hood.md). Recommended if you want to change the GF grammar and not just the symbol table.
+The [vibe directory](./doc/vibe/) containing LLM-generated documentation on LLM-generated experimental grammars.
 
-[Informalization of Advanced Mathematics: A Case Study with Homotopy Type Theory](https://types2026.cse.chalmers.se/abstracts/17.pdf). Forthcoming presentation by May Ohlsson and Aarne Ranta in Types 2026.
+[Informath Under the Hood](./doc/informath-under-the-hood.md). Recommended if you want to change the GF grammar and not just the symbol table. However, not completely up to date as of 2026-07-24.
+
+[Informalization of Advanced Mathematics: A Case Study with Homotopy Type Theory](https://types2026.cse.chalmers.se/abstracts/17.pdf). Presentation by May Ohlsson and Aarne Ranta in Types 2026.
 
 [Video from MCLP conference at Institut Pascal, Paris Saclay, September 2025](https://www.youtube.com/watch?v=9puGzYqta7Y&list=PLaT9F1eDUuN0FJAONMXxdGJrGGg2_x9Wb&index=4)
 
@@ -121,6 +127,13 @@ for many more examples.
 If you are not on a Mac, you will have to change the variable OPEN in the Makefile to point to the command you use for opening .pdf files.
 You should also make sure that the LaTeX packages `amsfonts`, `amssymb`, and `amsmath` are available for your LaTeX processing.
 
+Another thing to try is
+```
+$ make baseconstants
+```
+which shows the definitions of a set of basic mathematical concepts used in many demos. 
+Notice, however, that Informath is not restricted to these concepts but open to the addition of more.
+
 The former uses only English, but if you want to see something more in another language (Fre, Ger, Swe), also do e.g.
 ```
 $ make lang=Fre fulldemo
@@ -130,7 +143,7 @@ To see all options available in `RunInformath`, do
 $ RunInformath -help
 ```
 
-#### Notes added after release
+#### Solving a possible security issue on a Mac
 
 - If you are on a Mac, you may be blocked by a message saying that you cannot run software from untrusted source.
 There is a solution for this in security setting, described in [Mac support](https://support.apple.com/en-gb/guide/mac-help/mh40616/mac).
@@ -178,7 +191,7 @@ The following datasets can be processed with `RunInformath <filename>` to genera
 
 - [test/sigma.dk](./test/sigma.dk) contains some examples of variable-binding constructs (sums, integrals). Try `make sigma` to directly display a LaTeX document.
 
-- [test/top100.dk](./test/top100.dk) contains a selection of [Wiedijk's "100 theorems"](https://www.cs.ru.nl/~freek/100/). Try `make top100` to directly display a LaTeX document. Use `make lang=Fre top100` to generate French (and similarly for Ger, Swe).
+- [test/top100.dk](./test/top100.dk) contains a selection of [Wiedijk's "100 theorems"](https://www.cs.ru.nl/~freek/100/). Try `make top100` to directly display a LaTeX document. Use `make lang=Fre top100` to generate French (and similarly for Ger, Swe, and even for the vibe-coded experimental languages Cze, Fin, Pol).
   
 - [datasets/smad.tar.bz2](./datasets/smad.tar.bz2) contains the synthetic data used in the [autoformalization experiment of Huang et al.](https://epub.jku.at/doi/10.35011/risc-proceedings-scml.1)
 
@@ -243,6 +256,7 @@ The [share](./share/) directory contains
 
 The [test](./test/) directory contains
 - some test data as `.dk`, `.tex`, and `.txt` files (see above)
+- some alternative symbol tables in `.dkgf` files
 
 The [grammars](./grammars) directory contains
 
@@ -270,6 +284,11 @@ The [scripts](./scripts/) directory contains
 
 - Python scripts for various tasks in the development of Informath
 
+Of particular interest is one that prints the JSON files produced by Informath with nicer indentation. This can be useful when tracing the different steps in generation and parsing. For example:
+```
+$ echo "c : Proof (and (even 2) (prime 2))." | RunInformath -v | ./scripts/indent_jsonl.py
+```
+
 
 ## The structure of Informath
 
@@ -294,11 +313,11 @@ Conversions from Dedukti to Agda, Coq, and Lean and back are mostly engineering 
 
 The type checking is based on the file [BaseConstants.dk](./share/baseconstants.dk), which is meant to be extended as the project grows. This file type checks in Dedukti with the command
 ```
-$ dk check BaseConstants.dk
+$ dk check share/BaseConstants.dk
 ```
 The example file [test/exx.dk](./src/test/exx.dk) assumes this file. As shown in `make demo`, it must at the moment be appended to the base file to type check:
 ```
-$ cat BaseConstants.dk test/exx.dk >bexx.dk
+$ cat share/BaseConstants.dk test/exx.dk >bexx.dk
 $ dk check bexx.dk
 ```
 Since this is cumbersome, we will need to implement something more automatic in the future. We also plan to use Dedukti for type selecting among ambiguous parse results by type checking, and Lambdapi (a syntactically richer version of Dedukti with implicit arguments) to restore implicit arguments.
@@ -328,10 +347,9 @@ $ RunInformath -to-formalism=agda <file>
 where the file can be either a .dk or a text file.
 As shown by `make demo`, this process can produce valid Agda code:
 ```
-$ RunInformath -to-formalixm=agda test/exx.dk >exx.agda
-$ agda --prop exx.agda
+$ RunInformath -to-formalism=agda test/exx.dk >out/exx.agda
 ```
-The base file [BaseConstants.agda](./share/baseconstants.agda) is accessed by an `open import` statement.
+The base file [BaseConstants.agda](./share/baseconstants.agda) is also needed for checking in Agda. It can be accessed by prepending an `open import` statement in `exx.agda`; see `Makefile` for an example.
 
 ### Generating and type checking Rocq
 
@@ -376,26 +394,62 @@ Thus the mapping between Dedukti and GF is defined in `.dkgf` files, by default 
 ```
 This line maps the Dedukti identifier to the different GF functions usable for expressing the Dedukti concept; the first one is considered primary and the other ones are optional synonyms. 
 
-The GF functions can be given explicitly as abstract syntax identifiers.
-But there is also a more natural way: by giving verbal strings that show how a function is applied to its arguments. For example, the line
+The most convenient way to define symbol table entries is by giving verbal strings that show how a function is applied to its arguments. 
+Consider, for example, the Dedukti constant 
 ```
-disj : "X is disjoint from Y" | "X and Y are disjoint" | \isdisjoint
+disj : Set -> Set -> Prop.
 ```
-says that an application of the Dedukti constant `disj` to two arguments $X$ and $Y$ is primarily rendered "$X$ is equal to $Y$". The second alternative, uses the collective predication form "$X$ and $Y$ are disjoint". The third alternative `\disjoint` uses the LaTeX macro expression `\isdisjoint{X}{Y}`, which creates a symbolic expression in LaTeX's math mode (between dollar signs).
+Then the line
+```
+disj : "#1 is disjoint from #2" | "#1 and #2 are disjoint" | $#1 \notmeets #2$
+```
+says that an application of the Dedukti constant `disj` to two arguments $X$ and $Y$ can be rendered as "$X$ is equal to $Y$". The second alternative, uses the collective predication form "$X$ and $Y$ are disjoint". The third alternative produces a symbolic expression in LaTeX's math mode (between dollar signs).
 
-In these symbol table lines, the first variant must always be a **verbal** function, that is, use words instead of mathematical symbols. This condition is needed to make informalization failure-free: a symbolic function can only be used if all of its arguments have symbolic renderings, which is not guaranteed for all concepts in informal mathematics.
+In symbol table lines, the first variant is recommended to be a **verbal** function, that is, use words instead of mathematical symbols. This condition is needed to make informalization failure-free: a symbolic function can only be used if all of its arguments have symbolic renderings, which is not guaranteed for all concepts in informal mathematics.
 
-A GF function in a symbol table can be of any of the three kinds:
+A GF function in a symbol table can be given in any of the following forms:
 
-- a natural-language expression in quotes, e.g. `"X is disjoint from Y"`
-- a GF abstract syntax expression from the Informath grammar, e.g. `disjoint_AdjC`
-- a LaTeX macro, e.g. `\isdisjoint`
+- a natural-language expression in double quotes, e.g. `"#1 is disjoint from #2"`
+- a LaTeX expression between dollar signs, e.g. `$#1 \notmeets #2$`
+- a GF abstract syntax constant from the Informath grammar, e.g. `disjoint_AdjC`
+- a complex GF abstract syntax expression from the grammar, e.g. `AdjPrepAdj2 disjoint_Adj from_Prep`
 
-In addition to mappings from Dedukti to GF, a `.dkgf` file can contain the following kind of lines:
+In both natural language and LaTeX, the numbered variables `#1`, `#2`, etc, refer to arguments of the Dedukti constants.
+The highest number `#k` can be at most the arity of the constant, but otherwise the order of the arguments can be permuted, and arguments can also be dropped. 
+Dropping arguments is a common way to deal with "hidden arguments" in systems such as Agda and Lean, which Dedukti however has to made explicit.
+
+
+### Alternative forms of symbol table entries
+
+The above explanation of symbol tables is available in Informath release 0.4, 24 July 2026.
+It is the outcome of a long history of other formats, typically less general and less handy to use.
+However, Informath aims at backward compatibility and continues to support the earlier formats.
+They can also be found in symbol tables in this repository.
+What is more, they are sometimes needed to disambiguate example-based entries that Informath interprets in ambiguous ways.
+
+The most typical old format uses variables `X`, `Y`, etc, instead of integer indices:
+```
+disj : X is disjoint from Y
+```
+This format has the limitation that it does not enable permutations or dropping of arguments: whatever variable symbols are used, its interpretation is always the same as
+```
+disj : #1 is disjoint from #2
+```
+When using this format, the dropping of arguments is enabled with a separate symbol table directive, such as
+```
+#DROP disj 1
+```
+giving the same effect as 
+```
+disj : #2 is disjoint from #3
+```
+There is no reason to use the `X`, `Y` formats other than backward compatibility and maybe ease of writing.
+
+Instead of symbolic expressions between dollars, a symbol table can contain a macro symbol and a separate directive
 ```
 #MACRO <latex_newcommand>
 ```
-defines a LaTeX macro, which can be used on lines that map Dedukti identifiers to GF. The `\newcommand` directive on this line is included in the file generated with the `-to-latex-doc` option. For example, the mapping
+This defines a LaTeX macro, which can be used on lines that map Dedukti identifiers to GF. The `\newcommand` directive on this line is included in the file generated with the `-to-latex-doc` option. For example, the mapping
 ```
 congruent : congruent_Adj3 | \congruent
 ```
@@ -405,21 +459,28 @@ gives, as the primary rendering, the three-place adjective producing "$m$ is con
 ```
 This produces the rendering "$m \equiv n \, \text{mod} \, k$".
 
-The symbol table line
+An inlined LaTeX expression such as in 
 ```
-#DROP <DeduktiIdent> <int>
+congruent : congruent_Adj3 | $#1 \equiv #2 \, \text{mod} \, #3$
 ```
-tells the conversion from Dedukti to GF to drop a number of initial arguments of the function application. These are typically the "hidden arguments" in some other formalisms, which Dedukti has to make explicit.
+also produces a macro name "under the hood". 
+This name has the format
+```
+\congruentMACRo
+```
+which may in some cases lead to clashes.
+LaTeX will then give an error when processing the generated file.
+The remedy is to use an explicit `#MACRO` directive.
+Future work in Informath should produce guaranteedly clash-free macro names, but this is in principle impossible if the user imports unknown macro packages.
 
-```
-#CONV <formalism> <DeduktiIdent> <FormalismIdent>
-``` 
-defines a conversion of a Dedukti identifier to another formalism, such as Lean, typically to a standard library function of that formalism.
-
+The directive
 ```
 #BUILTIN <DeduktiIdent>+
 ``` 
-lists Dedukti identifiers that have built-in mappings in Informath's Haskell code. These lines are included to prevent spurious warnings when checking the symbol table. In `baseconstants.dkgf`, they include digits and a few other functions.  
+lists Dedukti identifiers that have built-in mappings in Informath's Haskell code. 
+These lines are included to prevent spurious warnings when checking the symbol table. In `baseconstants.dkgf`, they include digits and a few other functions.  
+
+### The Informath deployment stack
 
 The coverage of Informath can thus be extended by writing a `.dkgf` file that maps Dedukti identifiers to GF functions. If those GF functions are already available, nothing else is needed than the inclusion of the flag `-symboltables=<file>.dkgf+`. The flag `-add-symboltables=<file.dhf>+` includes `base_constants.dkgf` as one of the files. 
 
@@ -503,7 +564,8 @@ ProofExp:
   | "<ProperName>'s <Noun> ."
 ```
 The variable names `X`, `Y`, `Z`, `A`, `B`, `x` used in the examples are special constants included in the grammar for parsing examples.
-Therefore, you must use some of them and no other symbols, whereas the category symbols `<Adj>`, `<Noun>`, etc. range over all words included in the Informath grammar.
+But one can also use index variables of form `#1`, `#2`, etc.
+The category symbols `<Adj>`, `<Noun>`, etc. range over all words included in the Informath grammar.
 
 So, what are these placeholders `<Adj>`, `<Noun>`, `<Prep>`, `<Verb>`, `<ProperName>`, `<Ident>`, `<Int>`?  
 All but the last two are **lexical categories**, that is, categories of individual words such as "integer" and multiword phrases such as "natural number". 

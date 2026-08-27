@@ -19,12 +19,11 @@ type Opts = [String]
 
 nlg :: Env -> GJmt -> [GJmt] --- Tree a -> [Tree a]
 nlg env tree = case () of
-  _ | elem "-mathcore" (flags env) -> [dt]
+  _ | elem "-mathcore" (flags env) -> [t]
   _  -> sample (concat [[ft], afts, iafts, viafts, cviafts, ncviafts, vncviafts, uservariants])
   ---- TODO more option combinations
  where
-   dt = deAnnotate tree
-   t = unparenth dt
+   t = unparenth tree
    ut = uncoerce t
    ft = flatten ut
    afts = [aggregate ft]
@@ -38,15 +37,6 @@ nlg env tree = case () of
 
    sample ts = [t | (t, i) <- zip ts [0 ..], mod i fact == 0]
    fact = samplingFactor env
-
-deAnnotate :: Tree a -> Tree a
-deAnnotate tree = case tree of
-  GAnnotateExp _ t -> deAnnotate t
-  GAnnotateKind _ t -> deAnnotate t
-  GAnnotateProp _ t -> deAnnotate t
-  GAnnotateProof _ t -> deAnnotate t
-  GAnnotateProofExp _ t -> deAnnotate t
-  _ -> composOp deAnnotate tree
 
 unparenth :: Tree a -> Tree a
 unparenth t = case t of
@@ -343,14 +333,16 @@ collectivize t = case t of
   -- put together instances of an equivalence relation that have common elements
   GAndProp (GListProp props) -> maybe [t] return $ do
     (adjc, expss) <- commonRel props
-    let nexps = GListExp (nub expss) 
+    let nexps = GListExp (nub expss) --- removes repetitions of intermediate terms 
     return $ GAdjECollProp adjc nexps
 
   -- put together arguments of collective functions
   GFunCExp func x y -> do
     let args = collectArgs func [x, y]
     let margs = GListExp args
-    return $ GFunCCollExp func margs
+    if length args > 2
+      then [GFunCCollExp func margs]
+      else [GFunCExp func cx cy | cx <- collectivize x, cy <- collectivize y]
 
   _ -> composOpM collectivize t
   
